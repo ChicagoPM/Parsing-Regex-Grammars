@@ -1,0 +1,58 @@
+
+=head1 NAME
+
+Parsing - Regex and Grammars
+
+=head1 VERSION
+
+0.0 (2014-07-24)
+
+=head1 DESCRIPTION
+
+This talk is about parsing using regular expressions and grammars.
+
+=head1 RUNNING TIME
+
+Unknown
+
+=head1 TOPICS COVERED
+
+=over 4
+
+=item Parsing
+
+=item Regular Expressions
+
+=item Parse::RecDescent
+
+=item Marpa::R2
+
+=back
+
+=head1 PREREQUISITES
+
+=over 4
+
+=item Basic knowledge of Perl
+
+One of the community-approved beginner books will work splendidly.
+
+=item Basic knowledge of Regular Expressions
+
+This presentation assumes basic regex knowledge. It will teach some advanced
+regular expression syntax.
+
+=back
+
+=head1 AUTHORS
+
+Doug Bell <preaction@cpan.org>
+
+=head1 COPYRIGHT
+
+(c) 2014 Doug Bell
+
+=head1 LICENSE
+
+This presentation and associated code is licensed under the same terms as Perl
+itself (Artistic License 1.0 or GPL 1.0 at your discretion).
