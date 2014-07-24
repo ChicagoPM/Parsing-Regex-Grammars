@@ -11,6 +11,9 @@ Parsing - Regex and Grammars
 
 This talk is about parsing using regular expressions and grammars.
 
+The emphasis is on practical language parsing and getting things done. Very
+little (if any) parsing theory is discussed.
+
 =head1 RUNNING TIME
 
 Unknown
