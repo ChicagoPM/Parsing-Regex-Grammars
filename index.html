@@ -139,7 +139,8 @@ template: title
 
 ---
 template: title
-# Binary operators
+# Check for Equality
+## Binary operator
 ---
 
 # `{ foo: 1, bar: 2 }`
@@ -171,6 +172,237 @@ template: title
 ---
 template: title
 # Regular Expressions
+
+---
+# Filters: `.foo`
+```perl
+$filter_re = qr{[.]\w+};
+```
+
+---
+# Integers: `1`
+```perl
+$int_re = qr{\d+};
+```
+---
+# Equality: `FILTER == INT`
+```perl
+$equal_re = qr{$filter_re\s+==\s+$int_re};
+```
+
+---
+# Function: `grep( EQUALITY )`
+```perl
+$func_re = qr{(\w+)[(]\s+($equal_re)\s+[)]};
+```
+---
+template: code
+.center[
+# Our Expressions
+]
+```perl
+$filter_re = qr{[.]\w+};
+$int_re = qr{\d+};
+$equal_re = qr{$filter_re\s+==\s+$int_re};
+$func_re = qr{(\w+)[(]\s+($equal_re)\s+[)]};
+```
+---
+template: code
+.center[
+# Run Our Program
+]
+```perl
+sub filter {
+    my ( $class, $program, $document ) = @_;
+    # ...
+}
+```
+---
+template: code
+.center[
+# Filters
+]
+```perl
+    if ( $program =~ m{^$filter_re$} ) {
+        my ( undef, $key ) = split /[.]/, $program;
+        return $document-&gt;{ $key };
+    }
+```
+---
+template: code
+.center[
+# Integers
+]
+```perl
+    elsif ( $program =~ m{^$int_re$} ) {
+        return $program;
+    }
+```
+---
+template: code
+.center[
+# Equality
+]
+```perl
+    elsif ( $program =~ m{^$equal_re$} ) {
+        my ( $lhs, $op, $rhs ) = split /\s+(==)\s+/, $program;
+
+        my $lhs_value = $class-&gt;filter( $lhs, $document );
+        my $rhs_value = $class-&gt;filter( $rhs, $document );
+
+        if ( $lhs_value == $rhs_value ) {
+            return 1;
+        }
+        else {
+            return 0;
+        }
+    }
+```
+---
+template: code
+.center[
+# Function
+]
+```perl
+    elsif ( $program =~ m{^$func_re$} ) {
+        my ( $name, $argument ) = ( $1, $2 );
+        my $arg_val = $class-&gt;filter( $argument, $document );
+        if ( $name eq 'grep' ) {
+            if ( $arg_val ) {
+                return $document;
+            }
+            else {
+                return;
+            }
+        }
+    }
+```
+---
+template: title
+# Limitations Of Our Language
+---
+template: code
+.center[
+# Filter == Int
+]
+```perl
+$filter_re = qr{[.]\w+};
+$int_re = qr{\d+};
+$equal_re = qr{$filter_re\s+==\s+$int_re};
+```
+---
+template: code
+.center[
+# Filter|Int == Filter|Int
+]
+```perl
+$filter_re = qr{[.]\w+};
+$int_re = qr{\d+};
+$equal_re = qr{(?:$filter_re|$int_re)\s+==\s+(?:$filter_re|$int_re)};
+```
+---
+template: code
+.center[
+# Filter|Int == Filter|Int
+]
+```perl
+$filter_re = qr{[.]\w+};
+$int_re = qr{\d+};
+$term_re = qr{$filter_re|$int_re};
+$equal_re = qr{$term_re\s+==\s+$term_re};
+```
+---
+template: code
+.center[
+# grep( EQUAL )
+]
+```perl
+$func_re = qr{(\w+)[(]\s+($equal_re)\s+[)]};
+```
+---
+template: code
+.center[
+# grep( FILTER|EQUAL )
+]
+```perl
+$expr_re = qr{$equal_re|$filter_re};
+$func_re = qr{(\w+)[(]\s+($expr_re)\s+[)]};
+```
+---
+template: code
+.center[
+# Strings
+]
+```perl
+use Regexp::Common;
+my $string_re = $RE{delimited}{-delim=>q{'"}};
+```
+---
+template: code
+.center[
+# Number Formats
+## (Float, Hex, Oct, Bin)
+]
+```perl
+use Regexp::Common;
+my $evalnum_re = qr{(?:
+    0b $RE{num}{bin} |
+    0 $RE{num}{oct} |
+    0a $RE{num}{hex}
+)}x;
+```
+---
+# More Operators
+## !=, &gt;, &lt;, eq, ne
+---
+# More Functions
+## uniq, sort, length
+---
+# Array Indexing
+# `.[0]`
+---
+# Nested Data Structures
+# `.foo.bar`
+---
+.center[
+# Recursive Parsing
+`grep( length(.foo) == 1 )`
+]
+```perl
+$expr_re = qr{$equal_re|$filter_re};
+$func_re = qr{(\w+)[(]\s+($expr_re)\s+[)]};
+```
+```perl
+$expr_re = qr{$equal_re|$filter_re|(\w+)[(]\s+(?0)\s+[)]};
+$func_re = qr{(\w+)[(]\s+($expr_re)\s+[)]};
+```
+---
+template: title
+# Developing a Grammar
+
+---
+
+# Lexing
+
+---
+
+# Changing<br>`Text`<br>into<br>`Tokens`
+
+---
+
+# Parsing
+
+---
+
+# Using<br>`Tokens`<br>to <br>`do something`
+
+---
+
+---
+template: title
+
+# Guidelines
+## Learn from my pain
 
 ---
 template: title
