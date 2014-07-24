@@ -364,6 +364,7 @@ my $evalnum_re = qr{(?:
 # Nested Data Structures
 # `.foo.bar`
 ---
+template: code
 .center[
 # Recursive Parsing
 `grep( length(.foo) == 1 )`
@@ -397,7 +398,196 @@ template: title
 # Using<br>`Tokens`<br>to <br>`do something`
 
 ---
+template: title
 
+# Parse::RecDescent
+## Damien Conway
+---
+template: code
+.center[
+# Starting from Regex
+]
+```perl
+$filter_re = qr{[.]\w+};
+$int_re = qr{\d+};
+$term_re = qr{$filter_re|$int_re};
+$equal_re = qr{$term_re\s+==\s+$term_re};
+$expr_re = qr{$equal_re|$filter_re};
+$func_re = qr{(\w+)[(]\s+($expr_re)\s+[)]};
+```
+---
+template: code
+.center[
+# P::RD Grammar
+]
+```
+    &lt;autotree&gt;
+    program: func | expr | int
+    filter: '.' <skip:""> /\w+/
+    int: /\d+/
+    term: filter | int
+    equal: lhs_term '==' rhs_term
+    expr: equal | filter
+    func: /\w+/ '(' expr ')'
+    lhs_term: term
+    rhs_term: term
+```
+---
+# `<autotree>`
+---
+# Using <br>`Tokens`<br>to<br>`do something`
+---
+# Using <br>`Tokens`<br>to<br>`build a parse tree`
+---
+# `program: func | expr | int`
+## An entry point
+---
+# `filter: '.' &lt;skip:""&gt; /\w+/`
+## .foo
+## No whitespace
+---
+# `equal: lhs_term '==' rhs_term`
+## `&lt;autotree&gt;` wants unique names
+---
+template: code
+.center[
+# The Parse Tree
+]
+```
+$ perl parse-recdescent.pl '.foo' &lt; data.yml
+```
+```perl
+bless( {
+  __RULE__ =&gt; "program",
+  expr =&gt; bless( {
+    __RULE__ =&gt; "expr",
+    filter =&gt; bless( {
+      __DIRECTIVE1__ =&gt; "\\s*",
+      __PATTERN1__ =&gt; "foo",
+      __RULE__ =&gt; "filter",
+      __STRING1__ =&gt; "."
+    }, 'filter' )
+  }, 'expr' )
+}, 'program' )
+```
+---
+template: code
+.center[
+# The Parse Tree
+]
+```
+$ perl parse-recdescent.pl '.foo == 1' &lt; data.yml
+```
+```perl
+bless( {
+  __RULE__ =&gt; "program",
+  expr =&gt; bless( {
+    __RULE__ =&gt; "expr",
+    equal =&gt; bless( {
+      __RULE__ =&gt; "equal",
+      __STRING1__ =&gt; "==",
+      lhs_term =&gt; bless( {
+        __RULE__ =&gt; "lhs_term",
+        term =&gt; bless( {
+          __RULE__ =&gt; "term",
+          filter =&gt; bless( {
+            ...
+```
+---
+template: code
+.center[
+# Running the Program
+]
+```perl
+my $parser = Parse::RecDescent-&gt;new( $grammar );
+sub filter {
+    my ( $class, $program, $document ) = @_;
+    my $tree = $parser-&gt;program( $program );
+    return run_tree( $tree, $document );
+}
+```
+---
+template: code
+.center[
+# Running down the Tree
+]
+```perl
+sub run_tree {
+    my ( $tree, $document ) = @_;
+    ...
+}
+```
+---
+template: code
+.center[
+# Filters
+]
+```perl
+    if ( $tree-&gt;{filter} ) {
+        my ( $key ) = $tree-&gt;{filter}{__PATTERN1__};
+        return $document-&gt;{ $key };
+    }
+```
+---
+template: code
+.center[
+# Ints
+]
+```perl
+    elsif ( $tree-&gt;{int} ) {
+        return $tree-&gt;{int}{__VALUE__};
+    }
+```
+---
+template: code
+.center[
+# Equality
+]
+```perl
+    elsif ( $tree-&gt;{equal} ) {
+        my $lhs = $tree-&gt;{equal}{lhs_term};
+        my $rhs = $tree-&gt;{equal}{rhs_term};
+        my $lhs_value = run_tree( $lhs, $document );
+        my $rhs_value = run_tree( $rhs, $document );
+        if ( $lhs_value == $rhs_value ) {
+            return 1;
+        }
+        else {
+            return 0;
+        }
+    }
+```
+---
+template: code
+.center[
+# Functions
+]
+```perl
+    elsif ( $tree-&gt;{func} ) {
+        my $arg_val = run_tree( $tree-&gt;{func}{expr}, $document );
+        if ( $tree-&gt;{func}{__PATTERN1__} ) {
+            if ( $arg_val ) {
+                return $document;
+            }
+            else {
+                return;
+            }
+        }
+    }
+```
+---
+template: code
+.center[
+# Intermediate Steps
+]
+```perl
+    elsif ( $tree-&gt;{expr} ) {
+        return run_tree( $tree-&gt;{expr}, $document );
+    }
+    elsif ( $tree-&gt;{term} ) {
+        return run_tree( $tree-&gt;{term}, $document );
+    }
+```
 ---
 template: title
 
