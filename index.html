@@ -565,7 +565,7 @@ template: code
 ```perl
     elsif ( $tree-&gt;{func} ) {
         my $arg_val = run_tree( $tree-&gt;{func}{expr}, $document );
-        if ( $tree-&gt;{func}{__PATTERN1__} ) {
+        if ( $tree-&gt;{func}{__PATTERN1__} eq 'grep' ) {
             if ( $arg_val ) {
                 return $document;
             }
@@ -594,6 +594,34 @@ template: title
 # Guidelines
 ## Learn from my pain
 
+---
+template: code
+.center[
+# Build In Layers
+]
+
+* Primitives (int, string)
+* Variables (filter)
+* Operators (==)
+* Functions
+---
+# Test in Layers!!
+---
+# Small, Tight Rules
+---
+# Parse Trees!
+---
+template: code
+.center[
+# Parser actions as normalization
+]
+
+* Evaled numbers (oct, bin, hex)
+---
+template: title
+# Marpa
+---
+`this page unintentionally left blank`
 ---
 template: title
 
